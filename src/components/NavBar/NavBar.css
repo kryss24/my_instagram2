@@ -1,0 +1,46 @@
+.navbar {
+  background-color: #fff;
+  border-bottom: 1px solid #dbdbdb;
+  padding: 0 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-container {
+  width: 100%;
+  max-width: 975px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-logo {
+  font-family: 'Grand Hotel', cursive; /* A font that looks like Instagram's */
+  font-size: 28px;
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-user {
+  margin-right: 20px;
+  font-weight: 600;
+}
+
+.navbar-button {
+  background-color: #0095f6;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 600;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+
+.navbar-button:hover {
+  background-color: #0077c6;
+}

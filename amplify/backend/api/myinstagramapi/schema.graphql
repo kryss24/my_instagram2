@@ -1,0 +1,27 @@
+type User @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  username: String! @primaryKey
+  email: String!
+  phone_number: String
+  gender: String
+  bio: String
+  avatar: String
+  accountType: String @default(value: "public") # public or private
+  posts: [Post] @hasMany
+}
+
+type Post @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  content: String!
+  image: String
+  video: String
+  audio: String
+  location: String
+  tags: [String]
+  hashtags: [String]
+  mentions: [String]
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  owner: String
+  user: User @belongsTo
+}

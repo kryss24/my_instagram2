@@ -1,0 +1,99 @@
+.profile {
+  padding: 20px;
+  max-width: 935px;
+  margin: 0 auto;
+}
+
+.profile-header {
+  display: flex;
+  margin-bottom: 44px;
+}
+
+.profile-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin-right: 40px;
+  object-fit: cover;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-info h2 {
+  font-size: 28px;
+  font-weight: 300;
+  margin: 0;
+}
+
+.profile-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 5px 0 20px;
+}
+
+.profile-info label {
+  font-weight: bold;
+  font-size: 14px;
+  color: #8e8e8e;
+  margin-bottom: 5px;
+}
+
+.profile-stats {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.profile-stats span {
+  margin-right: 40px;
+  font-size: 16px;
+}
+
+.profile-edit-buttons {
+  margin-top: 20px;
+}
+
+.profile-button {
+  background-color: #3897f0;
+  color: white;
+  border: 1px solid #3897f0;
+  padding: 5px 9px;
+  border-radius: 3px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.profile-button.secondary {
+  background-color: transparent;
+  color: #262626;
+  border: 1px solid #dbdbdb;
+}
+
+.profile-edit-input,
+.profile-edit-textarea {
+  border: 1px solid #dbdbdb;
+  border-radius: 3px;
+  padding: 8px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.profile-edit-input {
+    font-size: 24px;
+    font-weight: 300;
+}
+
+.profile-posts {
+  border-top: 1px solid #dbdbdb;
+  padding-top: 20px;
+}
+
+.profile-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}

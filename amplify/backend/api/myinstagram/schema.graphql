@@ -1,0 +1,68 @@
+# Removed global auth rule for more specific control
+type User @model @auth(rules: [
+  { allow: owner },
+  { allow: private, operations: [read] }
+]) {
+  id: ID!
+  username: String! @primaryKey
+  preferred_username: String
+  email: String!
+  phone_number: String
+  gender: String
+  bio: String
+  avatar: String
+  accountType: String @default(value: "public") # public or private
+  posts: [Post] @hasMany
+  likes: [Like] @hasMany
+  comments: [Comment] @hasMany
+}
+
+type Post @model @auth(rules: [
+    { allow: owner },
+    { allow: private, operations: [read] }
+  ]) {
+  id: ID!
+  content: String!
+  image: String
+  video: String
+  audio: String
+  location: String
+  tags: [String]
+  hashtags: [String]
+  mentions: [String]
+  userId: String! # Le username de l'utilisateur qui a créé le post
+  user: User! @belongsTo(fields: ["userId"])
+  likes: [Like] @hasMany
+  comments: [Comment] @hasMany
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  owner: String
+}
+
+type Like @model @auth(rules: [
+    { allow: owner },
+    { allow: private, operations: [read] }
+  ]) {
+  id: ID!
+  postId: ID! @index
+  userId: String! @index
+  post: Post! @belongsTo(fields: ["postId"])
+  user: User! @belongsTo(fields: ["userId"])
+  createdAt: AWSDateTime!
+  owner: String
+}
+
+type Comment @model @auth(rules: [
+    { allow: owner },
+    { allow: private, operations: [read] }
+  ]) {
+  id: ID!
+  postId: ID! @index
+  userId: String! @index
+  content: String!
+  post: Post! @belongsTo(fields: ["postId"])
+  user: User! @belongsTo(fields: ["userId"])
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  owner: String
+}
