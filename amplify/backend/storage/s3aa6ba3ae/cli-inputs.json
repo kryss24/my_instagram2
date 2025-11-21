@@ -1,0 +1,13 @@
+{
+  "resourceName": "s3aa6ba3ae",
+  "policyUUID": "aa6ba3ae",
+  "bucketName": "myinstagram65fd43e75d2d4d70b5931070e9a11640",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "groupAccess": {}
+}

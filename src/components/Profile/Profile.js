@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { client } from '../../utils/client';
-import { getUser, postsByOwnerAndCreatedAt } from '../../graphql/queries';
-import { updateUser } from '../../graphql/mutations';
+import { getUserWithFollows } from '../../graphql/custom-queries';
+import { createFollow, deleteFollow, updateUser } from '../../graphql/mutations';
+import { getUrl } from 'aws-amplify/storage';
 import PostGridItem from './PostGridItem';
 import './Profile.css';
 
@@ -11,6 +12,11 @@ function Profile({ loggedInUser }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followId, setFollowId] = useState(null);
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [formData, setFormData] = useState({
     preferred_username: '',
     name: '',
@@ -27,24 +33,43 @@ function Profile({ loggedInUser }) {
       if (!userId) return;
       try {
         setLoading(true);
-        const userData = await client.graphql({ query: getUser, variables: { id: userId } });
+        const userData = await client.graphql({ query: getUserWithFollows, variables: { username: userId } });
         const user = userData.data.getUser;
         setViewedUser(user);
-        setFormData({
-          preferred_username: user.preferred_username || '',
-          name: user.name || '',
-          bio: user.bio || '',
-          birthdate: user.birthdate || '',
-          gender: user.gender || '',
-          phone_number: user.phone_number || '',
-        });
-
+        
         if (user) {
-          const postData = await client.graphql({ 
-            query: postsByOwnerAndCreatedAt, 
-            variables: { owner: user.id, sortDirection: 'DESC' } 
+          if (user.avatar) {
+            const url = await getUrl({ key: user.avatar, options: { accessLevel: 'protected' } });
+            setAvatarUrl(url.url.toString());
+          }
+
+          setPosts(user.posts.items);
+          const followersList = user.followers.items;
+          const followingList = user.following.items;
+          setFollowers(followersList);
+          setFollowing(followingList);
+
+          // Check if loggedInUser is following viewedUser
+          const followRelationship = followersList.find(
+            (follow) => follow.follower.username === loggedInUser?.username
+          );
+
+          if (followRelationship) {
+            setIsFollowing(true);
+            setFollowId(followRelationship.id);
+          } else {
+            setIsFollowing(false);
+            setFollowId(null);
+          }
+
+          setFormData({
+            preferred_username: user.preferred_username || '',
+            name: user.name || '',
+            bio: user.bio || '',
+            birthdate: user.birthdate || '',
+            gender: user.gender || '',
+            phone_number: user.phone_number || '',
           });
-          setPosts(postData.data.postsByOwnerAndCreatedAt.items);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -54,7 +79,7 @@ function Profile({ loggedInUser }) {
     };
 
     fetchUserData();
-  }, [userId]);
+  }, [userId, loggedInUser]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -63,7 +88,7 @@ function Profile({ loggedInUser }) {
   const handleSave = async () => {
     try {
       const input = {
-        id: viewedUser.id,
+        username: viewedUser.username,
         ...formData
       };
       const result = await client.graphql({ 
@@ -77,7 +102,39 @@ function Profile({ loggedInUser }) {
     }
   };
 
-  const isOwnProfile = loggedInUser?.id === viewedUser?.id;
+  const handleFollow = async () => {
+    try {
+      const input = {
+        followerId: loggedInUser.username,
+        followedId: viewedUser.username,
+      };
+      const result = await client.graphql({
+        query: createFollow,
+        variables: { input },
+      });
+      setIsFollowing(true);
+      setFollowId(result.data.createFollow.id);
+      setFollowers([...followers, { id: result.data.createFollow.id, follower: loggedInUser }]); // Optimistic update
+    } catch (error) {
+      console.error('Error following user:', error);
+    }
+  };
+
+  const handleUnfollow = async () => {
+    try {
+      await client.graphql({
+        query: deleteFollow,
+        variables: { input: { id: followId } },
+      });
+      setIsFollowing(false);
+      setFollowId(null);
+      setFollowers(followers.filter(f => f.follower.username !== loggedInUser.username)); // Optimistic update
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
+    }
+  };
+
+  const isOwnProfile = loggedInUser?.username === viewedUser?.username;
 
   if (loading) return <p>Loading...</p>;
   if (!viewedUser) return <p>User not found.</p>;
@@ -85,7 +142,7 @@ function Profile({ loggedInUser }) {
   return (
     <div className="profile">
       <div className="profile-header">
-        <img src={viewedUser.avatar || '/default-avatar.png'} alt={`${viewedUser.preferred_username}'s avatar`} className="profile-avatar" />
+        <img src={avatarUrl || '/default-avatar.png'} alt={`${viewedUser.preferred_username}'s avatar`} className="profile-avatar" />
         <div className="profile-info">
           {isEditing ? (
             <>
@@ -97,14 +154,21 @@ function Profile({ loggedInUser }) {
           ) : (
             <>
               <h2>{viewedUser.preferred_username}</h2>
+              {!isOwnProfile && (
+                isFollowing ? (
+                  <button onClick={handleUnfollow} className="profile-button secondary">Unfollow</button>
+                ) : (
+                  <button onClick={handleFollow} className="profile-button">Follow</button>
+                )
+              )}
               <p className="profile-name">{viewedUser.name}</p>
             </>
           )}
           
           <div className="profile-stats">
             <span><b>{posts.length}</b> posts</span>
-            <span><b>0</b> followers</span>
-            <span><b>0</b> following</span>
+            <span><b>{followers.length}</b> followers</span>
+            <span><b>{following.length}</b> following</span>
           </div>
 
           {isEditing ? (

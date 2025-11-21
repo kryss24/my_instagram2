@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SearchBar from '../SearchBar/SearchBar';
+import NotificationIcon from '../NotificationIcon/NotificationIcon';
 import './NavBar.css';
 
-function NavBar({ user, signOut }) {
-  // App.js now guarantees user is the full dbUser object, or it shows a loader.
-  // console.log(user.id);
+function NavBar({ user, onSignOut }) {
   if (!user) {
-    return null; // Or a loading skeleton
+    return null;
   }
 
   return (
@@ -15,10 +15,16 @@ function NavBar({ user, signOut }) {
         <div className="navbar-logo">
           <Link to="/">MyInstagram</Link>
         </div>
+        <div className="navbar-search">
+          <SearchBar />
+        </div>
         <div className="navbar-menu">
-          <Link to={`/profile`}>Profile</Link>
-          <span className="navbar-user">Hello, {user.email}</span>
-          <button className="navbar-button" onClick={signOut}>Sign Out</button>
+          <NotificationIcon user={user} />
+          <Link to={`/profile/${user.username}`}>Profile</Link>
+          <span className="navbar-user">
+            Hello, {user.preferred_username || user.username}
+          </span>
+          <button className="navbar-button" onClick={onSignOut}>Sign Out</button>
         </div>
       </div>
     </nav>
@@ -26,4 +32,3 @@ function NavBar({ user, signOut }) {
 }
 
 export default NavBar;
-

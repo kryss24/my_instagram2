@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { generateClient } from 'aws-amplify/api';
 import { updateUser } from '../../graphql/mutations';
+import { uploadData } from 'aws-amplify/storage';
+import { fetchAuthSession } from '@aws-amplify/auth';
 import './EditProfile.css';
 
 const client = generateClient();
@@ -13,6 +15,7 @@ function EditProfile({ user, onUpdate, onCancel }) {
     phone_number: user.phone_number || '',
     accountType: user.accountType || 'public'
   });
+  const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,17 +27,46 @@ function EditProfile({ user, onUpdate, onCancel }) {
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
+      let avatarKey = user.avatar;
+      if (avatarFile) {
+        const { identityId } = await fetchAuthSession();
+        if (!identityId) {
+            throw new Error("User is not authenticated.");
+        }
+        const sanitizedName = avatarFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
+        const fileName = `${Date.now()}-${sanitizedName}`;
+        // The path should be relative to the access level, 'protected/{identityId}/' is added by Amplify
+        const path = `${identityId}/avatars/${fileName}`;
+        
+        const uploadResult = await uploadData({
+          path: path,
+          data: avatarFile,
+          options: {
+            accessLevel: 'protected', // Specify the access level
+          },
+        }).result;
+        avatarKey = uploadResult.path;
+      }
+
       const updateInput = {
         input: {
           id: user.id,
           username: user.username, // required field
-          ...formData
+          ...formData,
+          avatar: avatarKey,
         }
       };
 
@@ -57,6 +89,17 @@ function EditProfile({ user, onUpdate, onCancel }) {
   return (
     <div className="edit-profile">
       <form onSubmit={handleSubmit}>
+        <div className="form-group">
+            <label htmlFor="avatar">Avatar</label>
+            <input
+                type="file"
+                id="avatar"
+                name="avatar"
+                accept="image/*"
+                onChange={handleFileChange}
+            />
+        </div>
+
         <div className="form-group">
           <label htmlFor="preferred_username">Username</label>
           <input

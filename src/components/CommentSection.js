@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
-import { createComment } from '../graphql/mutations';
+import { createComment, createNotification } from '../graphql/mutations';
 import { listComments } from '../graphql/queries';
 import { onCreateComment } from '../graphql/subscriptions';
 import './CommentSection.css';
 
 const client = generateClient();
 
-const CommentSection = ({ postId, userId, username }) => {
+const CommentSection = ({ postId, userId, username, postOwnerId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchComments();
-    subscribeToNewComments();
+    const subscription = subscribeToNewComments();
+    return () => subscription.unsubscribe(); // Clean up subscription
   }, [postId]);
 
   const fetchComments = async () => {
@@ -35,19 +35,23 @@ const CommentSection = ({ postId, userId, username }) => {
   };
 
   const subscribeToNewComments = () => {
-    const subscription = client.graphql({
+    return client.graphql({
       query: onCreateComment
     }).subscribe({
       next: ({ value }) => {
-        const newComment = value.data.onCreateComment;
-        if (newComment.postId === postId) {
-          setComments(prev => [newComment, ...prev]);
+        const newCommentData = value.data.onCreateComment;
+        if (newCommentData.postId === postId) {
+          // To prevent duplicates from the subscription and the manual state update
+          setComments(prev => {
+            if (prev.find(c => c.id === newCommentData.id)) {
+              return prev;
+            }
+            return [newCommentData, ...prev];
+          });
         }
       },
       error: error => console.error('Error subscribing to comments:', error)
     });
-
-    return () => subscription.unsubscribe();
   };
 
   const handleSubmitComment = async (e) => {
@@ -56,18 +60,37 @@ const CommentSection = ({ postId, userId, username }) => {
 
     setLoading(true);
     try {
-      await client.graphql({
+      const commentInput = {
+        postId,
+        userId,
+        content: newComment.trim(),
+        owner: userId
+      };
+
+      const response = await client.graphql({
         query: createComment,
-        variables: {
-          input: {
-            postId,
-            userId,
-            content: newComment.trim(),
-            owner: userId
-          }
-        }
+        variables: { input: commentInput }
       });
+
+      const createdComment = response.data.createComment;
+      setComments(prev => [createdComment, ...prev]); // Manually add to state
       setNewComment('');
+
+      // Create notification
+      if (userId !== postOwnerId) { // Don't notify on self-comment
+        await client.graphql({
+          query: createNotification,
+          variables: {
+            input: {
+              userId: postOwnerId,
+              type: 'NEW_COMMENT',
+              actorId: userId,
+              postId: postId,
+              read: false,
+            }
+          }
+        });
+      }
     } catch (error) {
       console.error('Error creating comment:', error);
     } finally {

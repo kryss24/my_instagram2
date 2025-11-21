@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
-import { createLike, deleteLike } from '../graphql/mutations';
+import { createLike, deleteLike, createNotification } from '../graphql/mutations';
 import { listLikes } from '../graphql/queries';
 import './LikeButton.css';
 
 const client = generateClient();
 
-const LikeButton = ({ postId, userId }) => {
+const LikeButton = ({ postId, userId, postOwnerId }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeId, setLikeId] = useState(null);
   const [likesCount, setLikesCount] = useState(0);
@@ -81,6 +80,22 @@ const LikeButton = ({ postId, userId }) => {
         setIsLiked(true);
         setLikeId(response.data.createLike.id);
         setLikesCount(prev => prev + 1);
+
+        // Create notification
+        if (userId !== postOwnerId) { // Don't notify on self-like
+          await client.graphql({
+            query: createNotification,
+            variables: {
+              input: {
+                userId: postOwnerId,
+                type: 'NEW_LIKE',
+                actorId: userId,
+                postId: postId,
+                read: false,
+              }
+            }
+          });
+        }
       }
     } catch (error) {
       console.error('Error toggling like:', error);

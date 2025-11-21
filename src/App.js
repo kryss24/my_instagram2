@@ -12,6 +12,15 @@ import { createUser } from './graphql/mutations';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
+import NotFoundPage from './pages/NotFoundPage';
+import HelpPage from './pages/HelpPage';
+import AboutPage from './pages/AboutPage';
+import DeveloperPage from './pages/DeveloperPage';
+import SearchPage from './pages/SearchPage';
+import NotificationsPage from './pages/NotificationsPage';
+import InboxPage from './pages/InboxPage';
+import ConversationPage from './pages/ConversationPage';
+import PostPage from './pages/PostPage';
 import NavBar from './components/NavBar/NavBar';
 import CreatePost from './components/CreatePost/CreatePost';
 import Feed from './components/Feed/Feed';
@@ -185,11 +194,17 @@ const LayoutWithNavBar = () => {
       <div className="main-content">
         <Routes>
           <Route path="/" element={<HomePage user={user} />} />
+          <Route path="/post/:postId" element={<PostPage user={user} />} />
           <Route path="/profile" element={<ProfilePage user={user} />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
-          {/* <Route path="/create" element={<CreatePost user={user} />} />
-          <Route path="/feed" element={<Feed currentUser={user} />} />
-          <Route path="*" element={<Navigate to="/" replace />} /> */}
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/inbox/:conversationId" element={<ConversationPage user={user} />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/developer" element={<DeveloperPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
     </>

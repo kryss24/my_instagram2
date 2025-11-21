@@ -6,6 +6,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: sticky; /* Make it sticky */
+  top: 0;
+  z-index: 1000;
 }
 
 .navbar-container {
@@ -19,11 +22,19 @@
 .navbar-logo {
   font-family: 'Grand Hotel', cursive; /* A font that looks like Instagram's */
   font-size: 28px;
+  flex: 1 0 auto; /* Allow logo to take space */
+}
+
+.navbar-search {
+  flex: 0 1 268px; /* Allow search to grow but not shrink too much */
+  text-align: center;
 }
 
 .navbar-menu {
   display: flex;
   align-items: center;
+  justify-content: flex-end; /* Align menu items to the right */
+  flex: 1 0 auto; /* Allow menu to take space */
 }
 
 .navbar-user {

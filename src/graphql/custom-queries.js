@@ -61,3 +61,128 @@ export const getPostWithUser = /* GraphQL */ `
     }
   }
 `;
+
+export const getUserWithFollows = /* GraphQL */ `
+  query GetUserWithFollows($username: String!) {
+    getUser(username: $username) {
+      id
+      username
+      preferred_username
+      email
+      phone_number
+      gender
+      bio
+      avatar
+      accountType
+      posts {
+        items {
+          id
+          content
+          createdAt
+        }
+        nextToken
+        __typename
+      }
+      likes {
+        items {
+          id
+        }
+        nextToken
+        __typename
+      }
+      comments {
+        items {
+          id
+        }
+        nextToken
+        __typename
+      }
+      following {
+        items {
+          id
+          followedId
+          followed {
+            id
+            username
+            avatar
+          }
+        }
+        nextToken
+        __typename
+      }
+      followers {
+        items {
+          id
+          follower {
+            id
+            username
+            avatar
+          }
+        }
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+
+export const getConversation = /* GraphQL */ `
+  query GetConversation($id: ID!) {
+    getConversation(id: $id) {
+      id
+      members
+      messages(sortDirection: ASC) { # Fetch messages sorted by creation time
+        items {
+          id
+          content
+          senderId
+          createdAt
+          sender { # Fetch sender details
+            id
+            username
+            preferred_username
+            avatar
+          }
+        }
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const listConversationsByMember = /* GraphQL */ `
+  query ListConversationsByMember(
+    $filter: ModelConversationFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listConversations(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        members
+        createdAt
+        updatedAt
+        messages(limit: 1, sortDirection: DESC) { # Fetch only the last message
+          items {
+            id
+            content
+            senderId
+            createdAt
+            sender {
+              id
+              username
+              preferred_username
+              avatar
+            }
+          }
+        }
+      }
+      nextToken
+    }
+  }
+`;

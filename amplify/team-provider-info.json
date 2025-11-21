@@ -22,6 +22,10 @@
         "myinstagram88e79655": {
           "deploymentBucketName": "amplify-myinstagram-dev-7348c-deployment",
           "s3Key": "amplify-builds/myinstagram88e79655-63555452343141427348-build.zip"
+        },
+        "searchUsersFunction": {
+          "deploymentBucketName": "amplify-myinstagram-dev-7348c-deployment",
+          "s3Key": "amplify-builds/searchUsersFunction-77545745483139636636-build.zip"
         }
       },
       "hosting": {
@@ -29,6 +33,9 @@
           "appId": "d3epmkddmdhshh",
           "type": "manual"
         }
+      },
+      "storage": {
+        "s3aa6ba3ae": {}
       }
     }
   }

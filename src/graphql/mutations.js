@@ -28,6 +28,22 @@ export const createUser = /* GraphQL */ `
         nextToken
         __typename
       }
+      following {
+        nextToken
+        __typename
+      }
+      followers {
+        nextToken
+        __typename
+      }
+      notifications {
+        nextToken
+        __typename
+      }
+      messages {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -62,6 +78,22 @@ export const updateUser = /* GraphQL */ `
         nextToken
         __typename
       }
+      following {
+        nextToken
+        __typename
+      }
+      followers {
+        nextToken
+        __typename
+      }
+      notifications {
+        nextToken
+        __typename
+      }
+      messages {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -93,6 +125,22 @@ export const deleteUser = /* GraphQL */ `
         __typename
       }
       comments {
+        nextToken
+        __typename
+      }
+      following {
+        nextToken
+        __typename
+      }
+      followers {
+        nextToken
+        __typename
+      }
+      notifications {
+        nextToken
+        __typename
+      }
+      messages {
         nextToken
         __typename
       }
@@ -139,6 +187,10 @@ export const createPost = /* GraphQL */ `
         __typename
       }
       comments {
+        nextToken
+        __typename
+      }
+      notifications {
         nextToken
         __typename
       }
@@ -189,6 +241,10 @@ export const updatePost = /* GraphQL */ `
         nextToken
         __typename
       }
+      notifications {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -233,6 +289,10 @@ export const deletePost = /* GraphQL */ `
         __typename
       }
       comments {
+        nextToken
+        __typename
+      }
+      notifications {
         nextToken
         __typename
       }
@@ -543,6 +603,441 @@ export const deleteComment = /* GraphQL */ `
       owner
       userCommentsUsername
       postCommentsId
+      __typename
+    }
+  }
+`;
+export const createFollow = /* GraphQL */ `
+  mutation CreateFollow(
+    $input: CreateFollowInput!
+    $condition: ModelFollowConditionInput
+  ) {
+    createFollow(input: $input, condition: $condition) {
+      id
+      followerId
+      followedId
+      follower {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const updateFollow = /* GraphQL */ `
+  mutation UpdateFollow(
+    $input: UpdateFollowInput!
+    $condition: ModelFollowConditionInput
+  ) {
+    updateFollow(input: $input, condition: $condition) {
+      id
+      followerId
+      followedId
+      follower {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const deleteFollow = /* GraphQL */ `
+  mutation DeleteFollow(
+    $input: DeleteFollowInput!
+    $condition: ModelFollowConditionInput
+  ) {
+    deleteFollow(input: $input, condition: $condition) {
+      id
+      followerId
+      followedId
+      follower {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const createNotification = /* GraphQL */ `
+  mutation CreateNotification(
+    $input: CreateNotificationInput!
+    $condition: ModelNotificationConditionInput
+  ) {
+    createNotification(input: $input, condition: $condition) {
+      id
+      userId
+      type
+      actorId
+      actor {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      postId
+      post {
+        id
+        content
+        image
+        video
+        audio
+        location
+        tags
+        hashtags
+        mentions
+        userId
+        createdAt
+        updatedAt
+        owner
+        userPostsUsername
+        __typename
+      }
+      read
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateNotification = /* GraphQL */ `
+  mutation UpdateNotification(
+    $input: UpdateNotificationInput!
+    $condition: ModelNotificationConditionInput
+  ) {
+    updateNotification(input: $input, condition: $condition) {
+      id
+      userId
+      type
+      actorId
+      actor {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      postId
+      post {
+        id
+        content
+        image
+        video
+        audio
+        location
+        tags
+        hashtags
+        mentions
+        userId
+        createdAt
+        updatedAt
+        owner
+        userPostsUsername
+        __typename
+      }
+      read
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteNotification = /* GraphQL */ `
+  mutation DeleteNotification(
+    $input: DeleteNotificationInput!
+    $condition: ModelNotificationConditionInput
+  ) {
+    deleteNotification(input: $input, condition: $condition) {
+      id
+      userId
+      type
+      actorId
+      actor {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      postId
+      post {
+        id
+        content
+        image
+        video
+        audio
+        location
+        tags
+        hashtags
+        mentions
+        userId
+        createdAt
+        updatedAt
+        owner
+        userPostsUsername
+        __typename
+      }
+      read
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const createConversation = /* GraphQL */ `
+  mutation CreateConversation(
+    $input: CreateConversationInput!
+    $condition: ModelConversationConditionInput
+  ) {
+    createConversation(input: $input, condition: $condition) {
+      id
+      members
+      messages {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateConversation = /* GraphQL */ `
+  mutation UpdateConversation(
+    $input: UpdateConversationInput!
+    $condition: ModelConversationConditionInput
+  ) {
+    updateConversation(input: $input, condition: $condition) {
+      id
+      members
+      messages {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteConversation = /* GraphQL */ `
+  mutation DeleteConversation(
+    $input: DeleteConversationInput!
+    $condition: ModelConversationConditionInput
+  ) {
+    deleteConversation(input: $input, condition: $condition) {
+      id
+      members
+      messages {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const createMessage = /* GraphQL */ `
+  mutation CreateMessage(
+    $input: CreateMessageInput!
+    $condition: ModelMessageConditionInput
+  ) {
+    createMessage(input: $input, condition: $condition) {
+      id
+      conversationId
+      senderId
+      sender {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      content
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const updateMessage = /* GraphQL */ `
+  mutation UpdateMessage(
+    $input: UpdateMessageInput!
+    $condition: ModelMessageConditionInput
+  ) {
+    updateMessage(input: $input, condition: $condition) {
+      id
+      conversationId
+      senderId
+      sender {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      content
+      createdAt
+      updatedAt
+      __typename
+    }
+  }
+`;
+export const deleteMessage = /* GraphQL */ `
+  mutation DeleteMessage(
+    $input: DeleteMessageInput!
+    $condition: ModelMessageConditionInput
+  ) {
+    deleteMessage(input: $input, condition: $condition) {
+      id
+      conversationId
+      senderId
+      sender {
+        id
+        username
+        preferred_username
+        email
+        phone_number
+        gender
+        bio
+        avatar
+        accountType
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      content
+      createdAt
+      updatedAt
       __typename
     }
   }

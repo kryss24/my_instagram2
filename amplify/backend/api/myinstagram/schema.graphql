@@ -1,3 +1,4 @@
+# Re-syncing environment
 # Removed global auth rule for more specific control
 type User @model @auth(rules: [
   { allow: owner },
@@ -15,6 +16,10 @@ type User @model @auth(rules: [
   posts: [Post] @hasMany
   likes: [Like] @hasMany
   comments: [Comment] @hasMany
+  following: [Follow] @hasMany(indexName: "byFollower", fields: ["username"])
+  followers: [Follow] @hasMany(indexName: "byFollowed", fields: ["username"])
+  notifications: [Notification] @hasMany(indexName: "byUser", fields: ["username"])
+  messages: [Message] @hasMany(indexName: "bySender", fields: ["username"])
 }
 
 type Post @model @auth(rules: [
@@ -29,11 +34,12 @@ type Post @model @auth(rules: [
   location: String
   tags: [String]
   hashtags: [String]
-  mentions: [String]
+mentions: [String]
   userId: String! # Le username de l'utilisateur qui a créé le post
   user: User! @belongsTo(fields: ["userId"])
   likes: [Like] @hasMany
   comments: [Comment] @hasMany
+  notifications: [Notification] @hasMany(indexName: "byPost", fields: ["id"])
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
   owner: String
@@ -65,4 +71,60 @@ type Comment @model @auth(rules: [
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
   owner: String
+}
+
+type Follow @model @auth(rules: [
+    { allow: owner },
+    { allow: private, operations: [read] }
+  ]) {
+  id: ID!
+  followerId: String! @index(name: "byFollower", sortKeyFields: ["followedId"])
+  followedId: String! @index(name: "byFollowed", sortKeyFields: ["followerId"])
+  follower: User! @belongsTo(fields: ["followerId"])
+  followed: User! @belongsTo(fields: ["followedId"])
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  owner: String
+}
+
+type Notification @model @auth(rules: [
+  { allow: owner, ownerField: "userId", operations: [read, delete] }
+]) {
+  id: ID!
+  userId: String! @index(name: "byUser", sortKeyFields: ["createdAt"])
+  type: String! # NEW_LIKE, NEW_COMMENT, NEW_FOLLOWER
+  actorId: String!
+  actor: User @belongsTo(fields: ["actorId"])
+  postId: ID @index(name: "byPost", sortKeyFields: ["createdAt"])
+  post: Post @belongsTo(fields: ["postId"])
+  read: Boolean! @default(value: "false")
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Conversation @model @auth(rules: [
+  { allow: owner, ownerField: "members" }
+]) {
+  id: ID!
+  members: [String!]!
+  messages: [Message] @hasMany(indexName: "byConversation", fields: ["id"])
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Message @model @auth(rules: [
+  { allow: owner, ownerField: "senderId" },
+  { allow: private, operations: [read] }
+]) {
+  id: ID!
+  conversationId: ID! @index(name: "byConversation", sortKeyFields: ["createdAt"])
+  senderId: String! @index(name: "bySender", sortKeyFields: ["createdAt"])
+  sender: User @belongsTo(fields: ["senderId"])
+  content: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Query {
+  searchUsers(query: String!): [User] @function(name: "searchUsersFunction-${env}")
 }
