@@ -5,6 +5,7 @@ import { generateClient } from 'aws-amplify/api';
 import { getUserWithFollows, getConversation, listConversationsByMember } from '../graphql/custom-queries';
 import { createFollow, deleteFollow, createNotification, createConversation } from '../graphql/mutations';
 import EditProfile from '../components/EditProfile/EditProfile';
+import { getUrl } from 'aws-amplify/storage';
 import '../styles/ProfilePage.css';
 
 const client = generateClient();
@@ -16,6 +17,8 @@ const ProfilePage = () => {
   const [followId, setFollowId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [accountType, setAccountType] = useState('public');
+  const [avatarUrl, setAvatarUrl] = useState(null);
 
   const { username: profileUsername } = useParams();
   const navigate = useNavigate();
@@ -26,6 +29,7 @@ const ProfilePage = () => {
       const cognitoUser = await getCurrentUser();
       setCurrentUser(cognitoUser);
 
+
       const targetUsername = profileUsername || cognitoUser.username;
 
       const userData = await client.graphql({
@@ -33,6 +37,21 @@ const ProfilePage = () => {
         variables: { username: targetUsername },
       });
 
+      console.log('Fetched user data:', userData);
+      setAccountType(userData.data.getUser?.accountType || 'public');
+
+      console.log('Current user:', userData);
+
+      // Fetch user avatar
+        if (userData.data.getUser?.avatar) {
+          let avatarPath = userData.data.getUser.avatar;
+          if (!avatarPath.startsWith('public/')) {
+            avatarPath = `public/${avatarPath}`;
+          }
+          const urlResult = await getUrl({ path: avatarPath });
+          setAvatarUrl(urlResult.url.toString());
+        }
+        console.log('Current user:', avatarUrl);
       const profileData = userData.data.getUser;
       if (profileData) {
         setUser(profileData);
@@ -197,7 +216,7 @@ const ProfilePage = () => {
           <div className="profile-header">
             <div className="profile-avatar-container">
               {user.avatar ? (
-                <img src={user.avatar} alt={user.username} className="profile-avatar" />
+                <img src={avatarUrl} alt={user.username} className="profile-avatar" />
               ) : (
                 <div className="profile-avatar-placeholder">
                   {(user.preferred_username || user.username || '?')[0].toUpperCase()}
@@ -208,6 +227,7 @@ const ProfilePage = () => {
             <div className="profile-info">
               <div className="profile-info-header">
                 <h2 className="profile-username">{user.preferred_username || user.username}</h2>
+                <span>{accountType}</span>
                 {isCurrentUserProfile ? (
                   <>
                     <button className="edit-profile-button" onClick={() => setIsEditing(true)}>

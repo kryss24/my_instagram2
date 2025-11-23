@@ -13,11 +13,15 @@ function EditProfile({ user, onUpdate, onCancel }) {
     bio: user.bio || '',
     gender: user.gender || '',
     phone_number: user.phone_number || '',
-    accountType: user.accountType || 'public'
+
   });
   const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [accountType, setAccountType] = useState(user.accountType || 'public');
+
+  console.log(user.accountType);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,25 +52,24 @@ function EditProfile({ user, onUpdate, onCancel }) {
         }
         const sanitizedName = avatarFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
         const fileName = `${Date.now()}-${sanitizedName}`;
-        // The path should be relative to the access level, 'protected/{identityId}/' is added by Amplify
-        const path = `${identityId}/avatars/${fileName}`;
+        // The path should be relative to the access level, 'public/{identityId}/' is added by Amplify
+        const path = `public/${identityId}/avatars/${fileName}`;
         
         const uploadResult = await uploadData({
           path: path,
           data: avatarFile,
-          options: {
-            accessLevel: 'protected', // Specify the access level
-          },
         }).result;
         avatarKey = uploadResult.path;
       }
-
+      console.log(accountType);
       const updateInput = {
         input: {
           id: user.id,
           username: user.username, // required field
+          accountType: accountType,
           ...formData,
           avatar: avatarKey,
+          
         }
       };
 
@@ -152,16 +155,44 @@ function EditProfile({ user, onUpdate, onCancel }) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="accountType">Account Type</label>
-          <select
-            id="accountType"
-            name="accountType"
-            value={formData.accountType}
-            onChange={handleChange}
-          >
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-          </select>
+          <label>Account Privacy</label>
+          <div className="account-type-selector">
+            <label className={`account-type-option ${accountType === 'public' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="accountType"
+                value="public"
+                checked={accountType === 'public'}
+                onChange={(e) => setAccountType(e.target.value)}
+                disabled={loading}
+              />
+              <div className="account-type-content">
+                <span className="account-type-icon">🌐</span>
+                <div>
+                  <strong>Public Account</strong>
+                  <p>Anyone can see your posts</p>
+                </div>
+              </div>
+            </label>
+
+            <label className={`account-type-option ${accountType === 'private' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="accountType"
+                value="private"
+                checked={accountType === 'private'}
+                onChange={(e) => setAccountType(e.target.value)}
+                disabled={loading}
+              />
+              <div className="account-type-content">
+                <span className="account-type-icon">🔒</span>
+                <div>
+                  <strong>Private Account</strong>
+                  <p>Only your followers can see your posts</p>
+                </div>
+              </div>
+            </label>
+          </div>
         </div>
 
         {error && <div className="error-message">{error}</div>}

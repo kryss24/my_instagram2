@@ -3,67 +3,69 @@ import './CreatePost.css';
 import { generateClient } from 'aws-amplify/api';
 import { createPost } from '../../graphql/mutations';
 import { uploadData } from 'aws-amplify/storage';
-import { fetchAuthSession } from '@aws-amplify/auth';
 
 const client = generateClient();
 
 function CreatePost({ user, onPostCreated }) {
   const [content, setContent] = useState('');
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [mediaFile, setMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState(null);
+  const [mediaType, setMediaType] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Create a preview URL whenever the image file changes
-    if (image) {
-      const previewUrl = URL.createObjectURL(image);
-      setImagePreview(previewUrl);
-
-      // Cleanup the preview URL when the component unmounts or the image changes
+    if (mediaFile) {
+      const previewUrl = URL.createObjectURL(mediaFile);
+      setMediaPreview(previewUrl);
       return () => URL.revokeObjectURL(previewUrl);
     } else {
-      setImagePreview(null);
+      setMediaPreview(null);
     }
-  }, [image]);
+  }, [mediaFile]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file);
+      setMediaFile(file);
+      if (file.type.startsWith('image/')) {
+        setMediaType('image');
+      } else if (file.type.startsWith('video/')) {
+        setMediaType('video');
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!content.trim() && !image) return;
+    if (!content.trim() && !mediaFile) return;
 
     setLoading(true);
     try {
       let imageKey = null;
-      if (image) {
-        const { identityId } = await fetchAuthSession();
-        if (!identityId) {
-            throw new Error("User is not authenticated.");
-        }
-        const sanitizedName = image.name.replace(/[^a-zA-Z0-9.]/g, '_');
+      let videoKey = null;
+      
+      if (mediaFile) {
+        const sanitizedName = mediaFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
         const fileName = `${Date.now()}-${sanitizedName}`;
-        // The path should be relative to the access level, 'protected/{identityId}/' is added by Amplify
-        const path = `${identityId}/${fileName}`;
-
-        const uploadResult = await uploadData({
-        path: `public/${fileName}`,
-        data: image,
-      }).result;
         
-        imageKey = uploadResult.path; // This will now correctly be 'protected/{identityId}/fileName'
+        await uploadData({
+          path: `public/${fileName}`,
+          data: mediaFile,
+        }).result;
+        
+        if (mediaType === 'image') {
+          imageKey = fileName;
+        } else if (mediaType === 'video') {
+          videoKey = fileName;
+        }
       }
 
       const postDetails = {
         content: content.trim(),
-        userId: user.username,
         image: imageKey,
+        video: videoKey,
+        userId: user.username,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
       };
       
       const result = await client.graphql({
@@ -73,8 +75,9 @@ function CreatePost({ user, onPostCreated }) {
 
       if (result.data?.createPost) {
         setContent('');
-        setImage(null);
-        setImagePreview(null);
+        setMediaFile(null);
+        setMediaPreview(null);
+        setMediaType(null);
         if (document.getElementById('file-input')) {
           document.getElementById('file-input').value = '';
         }
@@ -92,7 +95,7 @@ function CreatePost({ user, onPostCreated }) {
 
   return (
     <div className="create-post-container">
-      <form className="create-post-form" onSubmit={handleSubmit}>
+      <div className="create-post-form">
         <textarea
           className="create-post-textarea"
           placeholder="What's on your mind?"
@@ -100,23 +103,52 @@ function CreatePost({ user, onPostCreated }) {
           onChange={(e) => setContent(e.target.value)}
           rows="3"
           disabled={loading}
-        ></textarea>
-        {imagePreview && (
-          <div className="image-preview">
-            <img src={imagePreview} alt="Selected preview" />
+        />
+        
+        {mediaPreview && (
+          <div className="media-preview">
+            {mediaType === 'image' ? (
+              <img src={mediaPreview} alt="Selected preview" />
+            ) : (
+              <video src={mediaPreview} controls />
+            )}
+            <button 
+              type="button" 
+              className="remove-media-btn"
+              onClick={() => {
+                setMediaFile(null);
+                setMediaPreview(null);
+                setMediaType(null);
+              }}
+            >
+              ✕
+            </button>
           </div>
         )}
-        <input
-          id="file-input"
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          disabled={loading}
-        />
-        <button type="submit" className="create-post-button" disabled={loading}>
-          {loading ? 'Posting...' : 'Post'}
-        </button>
-      </form>
+        
+        <div className="create-post-actions">
+          <label className="file-input-label">
+            <input
+              id="file-input"
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileChange}
+              disabled={loading}
+              style={{ display: 'none' }}
+            />
+            📷 Add Photo/Video
+          </label>
+          
+          <button 
+            type="button" 
+            className="create-post-button" 
+            disabled={loading}
+            onClick={handleSubmit}
+          >
+            {loading ? 'Posting...' : 'Post'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

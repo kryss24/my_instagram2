@@ -28,6 +28,8 @@ function Profile({ loggedInUser }) {
 
   const { userId } = useParams();
 
+  console.log(loggedInUser);
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId) return;
@@ -39,7 +41,11 @@ function Profile({ loggedInUser }) {
         
         if (user) {
           if (user.avatar) {
-            const url = await getUrl({ key: user.avatar, options: { accessLevel: 'protected' } });
+            let avatarPath = user.avatar;
+            if (!avatarPath.startsWith('public/')) {
+            avatarPath = `public/${avatarPath}`;
+          }
+            const url = await getUrl({ key: avatarPath });
             setAvatarUrl(url.url.toString());
           }
 

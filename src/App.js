@@ -139,7 +139,7 @@ const LayoutWithNavBar = () => {
                     gender: userAttributes.gender || '',
                     bio: '',
                     avatar: '',
-                    accountType: 'PERSONAL'
+                    accountType: 'public' // FIX: Default to public
                   }
                 }
               });

@@ -94,6 +94,10 @@ function Feed() {
     return () => subscription.unsubscribe();
   }, [currentUser]);
 
+  const handleDeletePost = (postId) => {
+    setPosts(posts.filter(post => post.id !== postId));
+  };
+
   if (loading) {
     return <div className="feed-message">Loading your personalized feed...</div>;
   }
@@ -111,7 +115,7 @@ function Feed() {
   return (
     <div className="feed">
       {posts.map(post => (
-        <Post key={post.id} post={post} currentUser={currentUser} />
+        <Post key={post.id} post={post} currentUser={currentUser} onDelete={handleDeletePost} />
       ))}
     </div>
   );
