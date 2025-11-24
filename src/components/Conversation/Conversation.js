@@ -4,6 +4,8 @@ import { generateClient } from 'aws-amplify/api';
 import { getConversation } from '../../graphql/custom-queries';
 import { createMessage } from '../../graphql/mutations';
 import { onCreateMessage } from '../../graphql/subscriptions';
+import { createNotificationLite, updateNotification, deleteNotification } from '../../graphql/mutations';
+
 import './Conversation.css';
 
 const client = generateClient();
@@ -69,10 +71,29 @@ function Conversation({ loggedInUser }) {
         senderId: loggedInUser.username,
       };
       setNewMessage('');
-      await client.graphql({
+      const messageResponse = await client.graphql({
         query: createMessage,
         variables: { input },
       });
+
+      // 2. Find the other conversation member
+      const receiverId = conversation.members.find(
+        (m) => m !== loggedInUser.username
+      );
+      // 3. Create notification
+      await client.graphql({
+        query: createNotificationLite,
+        variables: {
+          input: {
+            userId: otherMember,
+            type: "NEW_MESSAGE",
+            actorId: loggedInUser.username,
+            read: false
+          }
+        }
+      });
+
+
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -114,3 +135,34 @@ function Conversation({ loggedInUser }) {
 }
 
 export default Conversation;
+
+
+export const deleteNotificationById = async (notificationId) => {
+  try {
+    await client.graphql({
+      query: deleteNotification,
+      variables: {
+        input: {
+          id: notificationId
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+  }
+};
+export const markNotificationAsRead = async (notificationId) => {
+  try {
+    await client.graphql({
+      query: updateNotification,
+      variables: {
+        input: {
+          id: notificationId,
+          read: true
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+  }
+};

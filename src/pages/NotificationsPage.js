@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { generateClient } from 'aws-amplify/api';
 import { getCurrentUser } from '@aws-amplify/auth';
 import { notificationsByUserIdAndCreatedAt } from '../graphql/queries';
-import { updateNotification } from '../graphql/mutations';
+import { updateNotification, markNotificationRead } from '../graphql/mutations';
 import { onCreateNotification } from '../graphql/subscriptions';
 import { getUrl } from 'aws-amplify/storage';
+import { getUser } from '../graphql/queries';
 import '../styles/NotificationsPage.css';
 
 const client = generateClient();
@@ -25,18 +26,29 @@ const NotificationsPage = () => {
         },
       });
       const items = response.data.notificationsByUserIdAndCreatedAt.items;
+      
 
       const notificationsWithAvatars = await Promise.all(
         items.map(async (notification) => {
           let avatarUrl = '/default-avatar.png';
-          if (notification.actor?.avatar) {
+
             try {
-              const url = await getUrl({ key: notification.actor.avatar, options: { accessLevel: 'protected' }});
-              avatarUrl = url.url.toString();
+              const response = await client.graphql({
+                        query: getUser,
+                        variables: { username: notification.actorId },
+                      });
+              const actorData = response.data.getUser;
+              let avatarPath = actorData.avatar;
+              console.log('Avatar Path:', avatarPath);
+              if (!avatarPath.startsWith('public/')) {
+                avatarPath = `public/${avatarPath}`;
+              }
+              const urlResult = await getUrl({ path: avatarPath });
+              
+              avatarUrl =   urlResult.url.toString();
             } catch (error) {
               console.error('Error fetching avatar for notification:', error);
             }
-          }
           return { ...notification, actor: { ...notification.actor, avatarUrl } };
         })
       );
@@ -71,14 +83,10 @@ const NotificationsPage = () => {
 
     try {
       await client.graphql({
-        query: updateNotification,
-        variables: {
-          input: {
-            id: notification.id,
-            read: true,
-          },
-        },
+        query: markNotificationRead,
+        variables: { id: notification.id }
       });
+
       setNotifications(prev => 
         prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
       );
@@ -134,6 +142,7 @@ const NotificationsPage = () => {
         <div className="notifications-list">
           {notifications.length > 0 ? (
             notifications.map((notification) => (
+              
               <Link 
                 to={getNotificationLink(notification)}
                 key={notification.id} 

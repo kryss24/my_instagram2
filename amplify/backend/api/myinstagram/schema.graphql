@@ -96,7 +96,8 @@ type Follow @model @auth(rules: [
 }
 
 type Notification @model @auth(rules: [
-  { allow: owner, ownerField: "userId", operations: [read, delete] }
+  { allow: owner, ownerField: "userId", operations: [read, update, delete] },
+  { allow: private, operations: [create] }
 ]) {
   id: ID!
   userId: String! @index(name: "byUser", sortKeyFields: ["createdAt"])

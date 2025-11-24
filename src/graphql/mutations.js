@@ -805,6 +805,22 @@ export const createNotification = /* GraphQL */ `
     }
   }
 `;
+export const createNotificationLite = /* GraphQL */ `
+  mutation CreateNotification(
+    $input: CreateNotificationInput!
+  ) {
+    createNotification(input: $input) {
+      id
+      userId
+      type
+      actorId
+      postId
+      read
+      createdAt
+    }
+  }
+`;
+
 export const updateNotification = /* GraphQL */ `
   mutation UpdateNotification(
     $input: UpdateNotificationInput!
@@ -856,6 +872,15 @@ export const updateNotification = /* GraphQL */ `
     }
   }
 `;
+export const markNotificationRead = /* GraphQL */ `
+  mutation MarkNotificationRead($id: ID!) {
+    updateNotification(input: { id: $id, read: true }) {
+      id
+      read
+    }
+  }
+`;
+
 export const deleteNotification = /* GraphQL */ `
   mutation DeleteNotification(
     $input: DeleteNotificationInput!
