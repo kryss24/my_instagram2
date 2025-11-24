@@ -151,7 +151,7 @@ function Post({ post, currentUser, onDelete }) {
           )}
         </div>
         <div className="post-owner">
-          <Link to={`/profile/${post.user?.username || 'unknown'}`}>
+          <Link to={`/profile/${post.userId || 'unknown'}`}>
             {post.userPostsUsername || post.user?.preferred_username || 'Unknown User'}
           </Link>
         </div>
