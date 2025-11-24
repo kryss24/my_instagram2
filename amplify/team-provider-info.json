@@ -26,13 +26,53 @@
         "searchUsersFunction": {
           "deploymentBucketName": "amplify-myinstagram-dev-7348c-deployment",
           "s3Key": "amplify-builds/searchUsersFunction-77545745483139636636-build.zip"
-        }
+        },
+        "myinstagram": {},
+        "myinstagrambf13c3e1": {}
       },
       "hosting": {
         "amplifyhosting": {
           "appId": "d3epmkddmdhshh",
           "type": "manual"
         }
+      },
+      "storage": {
+        "s3aa6ba3ae": {}
+      }
+    }
+  },
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-myinstagram-prod-98a70-authRole",
+      "UnauthRoleArn": "arn:aws:iam::366101697251:role/amplify-myinstagram-prod-98a70-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::366101697251:role/amplify-myinstagram-prod-98a70-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-myinstagram-prod-98a70-deployment",
+      "UnauthRoleName": "amplify-myinstagram-prod-98a70-unauthRole",
+      "StackName": "amplify-myinstagram-prod-98a70",
+      "StackId": "arn:aws:cloudformation:us-east-1:366101697251:stack/amplify-myinstagram-prod-98a70/16aa20b0-c881-11f0-82e5-0e22faae9b4d",
+      "AmplifyAppId": "d3epmkddmdhshh"
+    },
+    "categories": {
+      "auth": {
+        "myinstagrambf13c3e1": {}
+      },
+      "function": {
+        "myinstagram88e79655": {
+          "deploymentBucketName": "amplify-myinstagram-prod-98a70-deployment",
+          "s3Key": "amplify-builds/myinstagram88e79655-63555452343141427348-build.zip"
+        },
+        "myinstagram": {},
+        "myinstagrambf13c3e1": {}
+      },
+      "hosting": {
+        "amplifyhosting": {
+          "appId": "d3epmkddmdhshh",
+          "type": "manual"
+        }
+      },
+      "api": {
+        "myinstagram": {}
       },
       "storage": {
         "s3aa6ba3ae": {}

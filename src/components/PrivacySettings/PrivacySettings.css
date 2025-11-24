@@ -1,0 +1,73 @@
+.privacy-settings {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.privacy-settings h3 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.privacy-description {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.privacy-toggle {
+  display: flex;
+  gap: 12px;
+}
+
+.privacy-button {
+  flex: 1;
+  padding: 12px 24px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.privacy-button:hover:not(:disabled) {
+  border-color: #0095f6;
+  background: #f0f8ff;
+}
+
+.privacy-button.active {
+  background: #0095f6;
+  color: white;
+  border-color: #0095f6;
+}
+
+.privacy-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading-message {
+  margin-top: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #0095f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

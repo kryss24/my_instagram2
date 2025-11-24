@@ -182,6 +182,7 @@ export const onCreatePost = /* GraphQL */ `
         owner
         __typename
       }
+      isPublic
       likes {
         nextToken
         __typename
@@ -233,6 +234,7 @@ export const onUpdatePost = /* GraphQL */ `
         owner
         __typename
       }
+      isPublic
       likes {
         nextToken
         __typename
@@ -284,6 +286,7 @@ export const onDeletePost = /* GraphQL */ `
         owner
         __typename
       }
+      isPublic
       likes {
         nextToken
         __typename
@@ -324,6 +327,7 @@ export const onCreateLike = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -374,6 +378,7 @@ export const onUpdateLike = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -424,6 +429,7 @@ export const onDeleteLike = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -475,6 +481,7 @@ export const onCreateComment = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -526,6 +533,7 @@ export const onUpdateComment = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -577,6 +585,7 @@ export const onDeleteComment = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -782,6 +791,7 @@ export const onCreateNotification = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -832,6 +842,7 @@ export const onUpdateNotification = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -882,6 +893,7 @@ export const onDeleteNotification = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner

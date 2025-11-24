@@ -5,7 +5,7 @@ import './Feed.css';
 import Post from '../Post/Post';
 import client from '../../utils/client';
 import { getUserWithFollows } from '../../graphql/custom-queries';
-import { listPostsWithUser } from '../../graphql/custom-queries';
+import { listPosts } from '../../graphql/queries';
 import { onCreatePost } from '../../graphql/subscriptions';
 
 function Feed() {
@@ -17,68 +17,89 @@ function Feed() {
   useEffect(() => {
     if (!currentUser) return;
 
-    const fetchFollowingAndPosts = async () => {
+    const fetchPosts = async () => {
       try {
         setLoading(true);
-        // 1. Fetch the list of users the current user is following
+        
+        // 1. Récupérer la liste des utilisateurs suivis
         const userDetails = await client.graphql({
           query: getUserWithFollows,
           variables: { username: currentUser.username }
         });
 
-        const followingList = userDetails.data.getUser.following.items.map(item => item.followedId);
+        const followingList = userDetails.data.getUser.following.items.map(
+          item => item.followedId
+        );
         setFollowedUsers(followingList);
-        
-        // 2. Construct the filter for posts, ensuring no empty values
-        const userIdsToFetch = [currentUser.username, ...followingList].filter(Boolean);
-        
-        let filter;
-        if (userIdsToFetch.length > 1) {
-          filter = {
-            or: userIdsToFetch.map(userId => ({ userId: { eq: userId } }))
-          };
-        } else if (userIdsToFetch.length === 1) {
-          filter = { userId: { eq: userIdsToFetch[0] } };
-        } else {
-          // No valid users to fetch posts for.
-          setPosts([]);
-          setLoading(false);
-          return;
-        }
 
-        // 3. Fetch posts from followed users and the current user
-        const postData = await client.graphql({
-          query: listPostsWithUser,
+        // 2. Récupérer tous les posts publics
+        const publicPostsResult = await client.graphql({
+          query: listPosts,
           variables: {
-            limit: 20,
-            filter: filter
+            filter: {
+              or: [
+                { isPublic: { eq: true } },
+                { isPublic: { attributeExists: false } } // Posts anciens sans isPublic
+              ]
+            },
+            limit: 50
           }
         });
 
-        if (postData.data?.listPosts?.items) {
-          const sortedPosts = postData.data.listPosts.items.sort((a, b) => 
-            new Date(b.createdAt) - new Date(a.createdAt)
-          );
-          setPosts(sortedPosts);
+        let allPosts = publicPostsResult.data.listPosts.items || [];
+
+        // 3. Récupérer les posts privés des utilisateurs suivis + mes posts privés
+        const usersToFetch = [...followingList, currentUser.username];
+        
+        for (const userId of usersToFetch) {
+          try {
+            const userPostsResult = await client.graphql({
+              query: listPosts,
+              variables: {
+                filter: {
+                  userId: { eq: userId },
+                  isPublic: { eq: false }
+                },
+                limit: 20
+              }
+            });
+            
+            if (userPostsResult.data.listPosts.items) {
+              allPosts = allPosts.concat(userPostsResult.data.listPosts.items);
+            }
+          } catch (err) {
+            console.error(`Error fetching posts for user ${userId}:`, err);
+          }
         }
+
+        // 4. Dédupliquer et trier par date
+        const uniquePosts = Array.from(
+          new Map(allPosts.map(post => [post.id, post])).values()
+        ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        setPosts(uniquePosts);
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error('Error fetching posts:', err);
+        setPosts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFollowingAndPosts();
+    fetchPosts();
 
-    // 4. Set up subscription for new posts
+    // 5. Subscription pour nouveaux posts
     const subscription = client.graphql({
       query: onCreatePost,
     }).subscribe({
       next: ({ data }) => {
         if (data?.onCreatePost) {
           const newPost = data.onCreatePost;
-          // Only add the new post if it's from the user or someone they follow
-          if (newPost.userId === currentUser.username || followedUsers.includes(newPost.userId)) {
+          
+          // Vérifier si le post doit être visible
+          const shouldDisplay = checkPostVisibility(newPost);
+          
+          if (shouldDisplay) {
             setPosts(prevPosts => {
               if (prevPosts.find(p => p.id === newPost.id)) {
                 return prevPosts;
@@ -94,8 +115,28 @@ function Feed() {
     return () => subscription.unsubscribe();
   }, [currentUser]);
 
+  // Fonction pour vérifier la visibilité d'un post en temps réel
+  const checkPostVisibility = (post) => {
+    // Si c'est mon propre post
+    if (post.userId === currentUser.username) {
+      return true;
+    }
+
+    // Si le post est public ou n'a pas de valeur isPublic (posts anciens)
+    if (post.isPublic === true || post.isPublic === null || post.isPublic === undefined) {
+      return true;
+    }
+
+    // Si le post est privé, vérifier si je suis l'auteur
+    if (post.isPublic === false) {
+      return followedUsers.includes(post.userId);
+    }
+
+    return false;
+  };
+
   const handleDeletePost = (postId) => {
-    setPosts(posts.filter(post => post.id !== postId));
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
   };
 
   if (loading) {
@@ -115,7 +156,12 @@ function Feed() {
   return (
     <div className="feed">
       {posts.map(post => (
-        <Post key={post.id} post={post} currentUser={currentUser} onDelete={handleDeletePost} />
+        <Post 
+          key={post.id} 
+          post={post} 
+          currentUser={currentUser} 
+          onDelete={handleDeletePost} 
+        />
       ))}
     </div>
   );

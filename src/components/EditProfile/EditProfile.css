@@ -270,3 +270,39 @@
   background-color: #fff3e0;
   color: #f57c00;
 }
+
+/* Warning message pour le changement de type */
+.account-type-warning {
+  margin-top: 12px;
+  padding: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  color: #856404;
+  font-size: 14px;
+}
+
+/* Message de synchronisation */
+.syncing-message {
+  margin: 20px 0;
+  padding: 16px;
+  background: #e3f2fd;
+  border-radius: 8px;
+  text-align: center;
+  color: #1976d2;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #0095f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

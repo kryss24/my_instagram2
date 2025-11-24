@@ -182,6 +182,7 @@ export const createPost = /* GraphQL */ `
         owner
         __typename
       }
+      isPublic
       likes {
         nextToken
         __typename
@@ -233,6 +234,7 @@ export const updatePost = /* GraphQL */ `
         owner
         __typename
       }
+      isPublic
       likes {
         nextToken
         __typename
@@ -284,6 +286,7 @@ export const deletePost = /* GraphQL */ `
         owner
         __typename
       }
+      isPublic
       likes {
         nextToken
         __typename
@@ -324,6 +327,7 @@ export const createLike = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -374,6 +378,7 @@ export const updateLike = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -424,6 +429,7 @@ export const deleteLike = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -475,6 +481,7 @@ export const createComment = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -526,6 +533,7 @@ export const updateComment = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -577,6 +585,7 @@ export const deleteComment = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -782,6 +791,7 @@ export const createNotification = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -832,6 +842,7 @@ export const updateNotification = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -882,6 +893,7 @@ export const deleteNotification = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner

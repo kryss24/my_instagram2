@@ -158,6 +158,7 @@ export const getPost = /* GraphQL */ `
         owner
         __typename
       }
+      isPublic
       likes {
         nextToken
         __typename
@@ -196,6 +197,7 @@ export const listPosts = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -224,6 +226,7 @@ export const getLike = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -295,6 +298,7 @@ export const getComment = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -447,6 +451,7 @@ export const getNotification = /* GraphQL */ `
         hashtags
         mentions
         userId
+        isPublic
         createdAt
         updatedAt
         owner
@@ -559,6 +564,46 @@ export const listMessages = /* GraphQL */ `
         content
         createdAt
         updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const postsByUserIdAndCreatedAt = /* GraphQL */ `
+  query PostsByUserIdAndCreatedAt(
+    $userId: String!
+    $createdAt: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelPostFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    postsByUserIdAndCreatedAt(
+      userId: $userId
+      createdAt: $createdAt
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        content
+        image
+        video
+        audio
+        location
+        tags
+        hashtags
+        mentions
+        userId
+        isPublic
+        createdAt
+        updatedAt
+        owner
+        userPostsUsername
         __typename
       }
       nextToken

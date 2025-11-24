@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { generateClient } from 'aws-amplify/api';
-import { updateUser } from '../../graphql/mutations';
+import { updateUser, updatePost } from '../../graphql/mutations';
+import { listPosts } from '../../graphql/queries';
 import { uploadData } from 'aws-amplify/storage';
 import { fetchAuthSession } from '@aws-amplify/auth';
 import './EditProfile.css';
@@ -13,15 +14,12 @@ function EditProfile({ user, onUpdate, onCancel }) {
     bio: user.bio || '',
     gender: user.gender || '',
     phone_number: user.phone_number || '',
-
   });
   const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [accountType, setAccountType] = useState(user.accountType || 'public');
-
-  console.log(user.accountType);
-
+  const [syncingPosts, setSyncingPosts] = useState(false); // Nouveau state
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,15 +42,15 @@ function EditProfile({ user, onUpdate, onCancel }) {
     setError('');
 
     try {
+      // 1. Upload avatar si nécessaire
       let avatarKey = user.avatar;
       if (avatarFile) {
         const { identityId } = await fetchAuthSession();
         if (!identityId) {
-            throw new Error("User is not authenticated.");
+          throw new Error("User is not authenticated.");
         }
         const sanitizedName = avatarFile.name.replace(/[^a-zA-Z0-9.]/g, '_');
         const fileName = `${Date.now()}-${sanitizedName}`;
-        // The path should be relative to the access level, 'public/{identityId}/' is added by Amplify
         const path = `public/${identityId}/avatars/${fileName}`;
         
         const uploadResult = await uploadData({
@@ -61,15 +59,26 @@ function EditProfile({ user, onUpdate, onCancel }) {
         }).result;
         avatarKey = uploadResult.path;
       }
-      console.log(accountType);
+
+      // 2. Vérifier si accountType a changé
+      const accountTypeChanged = accountType !== user.accountType;
+    
+      if (accountTypeChanged) {
+        const confirmMessage = `Switching to a ${accountType} account will update all your posts. Continue?`;
+        if (!window.confirm(confirmMessage)) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 3. Mettre à jour l'utilisateur
       const updateInput = {
         input: {
           id: user.id,
-          username: user.username, // required field
+          username: user.username,
           accountType: accountType,
           ...formData,
           avatar: avatarKey,
-          
         }
       };
 
@@ -77,6 +86,12 @@ function EditProfile({ user, onUpdate, onCancel }) {
         query: updateUser,
         variables: updateInput
       });
+
+      // 4. Si accountType a changé, synchroniser tous les posts
+      if (accountTypeChanged && response.data?.updateUser) {
+        setSyncingPosts(true);
+        await syncAllPostsPrivacy(user, accountType); // ← Passez l'objet user complet
+      }
 
       if (response.data?.updateUser) {
         onUpdate(response.data.updateUser);
@@ -86,21 +101,75 @@ function EditProfile({ user, onUpdate, onCancel }) {
       setError('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
+      setSyncingPosts(false);
     }
   };
 
+  // Nouvelle fonction pour synchroniser les posts
+const syncAllPostsPrivacy = async (user, newAccountType) => {
+  try {
+    // Utilisez le bon identifiant - essayez preferred_username en premier
+    const userIdentifier = user.preferred_username || user.username;
+    
+    console.log(`Syncing posts for user:`, {
+      username: user.username,
+      preferred_username: user.preferred_username,
+      using: userIdentifier
+    });
+    
+    // Récupérer tous les posts de l'utilisateur
+    const postsResult = await client.graphql({
+      query: listPosts,
+      variables: {
+        filter: { userId: { eq: userIdentifier } }
+      }
+    });
+
+    const posts = postsResult.data.listPosts.items;
+    console.log(`Found ${posts.length} posts:`, posts);
+
+    if (posts.length === 0) {
+      console.warn('No posts found. Check if userId in posts matches:', userIdentifier);
+      return;
+    }
+
+    const isPublic = newAccountType === 'public';
+    console.log(`Updating posts to isPublic=${isPublic}`);
+
+    // Mettre à jour tous les posts en parallèle
+    const updatePromises = posts.map(post => {
+      console.log(`Updating post ${post.id} to isPublic=${isPublic}`);
+      return client.graphql({
+        query: updatePost,
+        variables: {
+          input: {
+            id: post.id,
+            isPublic: isPublic
+          }
+        }
+      });
+    });
+
+    await Promise.all(updatePromises);
+    
+    console.log(`Successfully updated ${posts.length} posts to isPublic=${isPublic}`);
+  } catch (error) {
+    console.error('Error syncing posts:', error);
+    throw new Error('Failed to sync posts with new privacy setting');
+  }
+};
   return (
     <div className="edit-profile">
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-            <label htmlFor="avatar">Avatar</label>
-            <input
-                type="file"
-                id="avatar"
-                name="avatar"
-                accept="image/*"
-                onChange={handleFileChange}
-            />
+          <label htmlFor="avatar">Avatar</label>
+          <input
+            type="file"
+            id="avatar"
+            name="avatar"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
         </div>
 
         <div className="form-group">
@@ -193,15 +262,30 @@ function EditProfile({ user, onUpdate, onCancel }) {
               </div>
             </label>
           </div>
+          
+          {/* Message d'information si le type change */}
+          {accountType !== user.accountType && (
+            <p className="account-type-warning">
+              ⚠️ Changing to {accountType} will update all your existing posts
+            </p>
+          )}
         </div>
 
         {error && <div className="error-message">{error}</div>}
 
+        {/* Indicateur de synchronisation */}
+        {syncingPosts && (
+          <div className="syncing-message">
+            <div className="spinner"></div>
+            <p>Syncing posts with new privacy setting...</p>
+          </div>
+        )}
+
         <div className="form-actions">
-          <button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : 'Save Changes'}
+          <button type="submit" disabled={loading || syncingPosts}>
+            {loading ? 'Saving...' : syncingPosts ? 'Syncing Posts...' : 'Save Changes'}
           </button>
-          <button type="button" onClick={onCancel} disabled={loading}>
+          <button type="button" onClick={onCancel} disabled={loading || syncingPosts}>
             Cancel
           </button>
         </div>

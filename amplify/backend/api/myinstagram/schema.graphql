@@ -1,6 +1,13 @@
 # Re-syncing environment
 # Removed global auth rule for more specific control
-type User @model @auth(rules: [
+
+
+type Query {
+  searchUsers(query: String!): [User]
+}
+
+
+type User @model  @auth(rules: [
   { allow: owner },
   { allow: private, operations: [read] }
 ]) {
@@ -34,9 +41,10 @@ type Post @model @auth(rules: [
   location: String
   tags: [String]
   hashtags: [String]
-mentions: [String]
-  userId: String! # Le username de l'utilisateur qui a créé le post
+  mentions: [String]
+  userId: String! @index(name: "byUserId", sortKeyFields: ["createdAt"])
   user: User! @belongsTo(fields: ["userId"])
+  isPublic: Boolean @default(value: "true")  # <-- AJOUT ICI
   likes: [Like] @hasMany
   comments: [Comment] @hasMany
   notifications: [Notification] @hasMany(indexName: "byPost", fields: ["id"])
@@ -123,8 +131,4 @@ type Message @model @auth(rules: [
   content: String!
   createdAt: AWSDateTime!
   updatedAt: AWSDateTime!
-}
-
-type Query {
-  searchUsers(query: String!): [User] @function(name: "searchUsersFunction-${env}")
 }

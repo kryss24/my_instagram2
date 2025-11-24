@@ -1,0 +1,25 @@
+## Query.searchUsers.req.vtl
+#set($filter = {
+  "or": []
+})
+
+## Recherche dans username
+$util.qr($filter.or.add({
+  "username": {
+    "contains": $ctx.args.query
+  }
+}))
+
+## Recherche dans preferred_username
+$util.qr($filter.or.add({
+  "preferred_username": {
+    "contains": $ctx.args.query
+  }
+}))
+
+{
+  "version": "2017-02-28",
+  "operation": "Scan",
+  "filter": $util.transform.toDynamoDBFilterExpression($filter),
+  "limit": 50
+}

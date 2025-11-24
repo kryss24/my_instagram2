@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { generateClient } from 'aws-amplify/api';
 import { getUrl } from 'aws-amplify/storage';
+import { listUsers } from '../graphql/queries';
+
+
 import { searchUsers } from '../graphql/queries';
 import '../styles/SearchPage.css';
 
@@ -14,11 +17,15 @@ function useQuery() {
 const SearchPage = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
-  const locationQuery = useQuery();
-  const searchQuery = locationQuery.get('q');
+  const { search } = useLocation();
+  const searchQuery = new URLSearchParams(search).get('q');
+
+
+  // console.log('Search query:', searchQuery);
 
   useEffect(() => {
     const fetchResults = async () => {
+
       if (!searchQuery) {
         setResults([]);
         setLoading(false);
@@ -28,17 +35,31 @@ const SearchPage = () => {
       setLoading(true);
       try {
         const response = await client.graphql({
-          query: searchUsers,
-          variables: { query: searchQuery },
+          query: listUsers,
+          variables: {
+            filter: {
+              or: [
+                { preferred_username: { contains: searchQuery } },
+                { username: { contains: searchQuery } },
+              ]
+            }
+          }
         });
-        const users = response.data?.searchUsers || [];
+
+        const users = response.data?.listUsers?.items || [];
 
         const usersWithAvatars = await Promise.all(
           users.map(async (user) => {
             if (user.avatar) {
+              
               try {
-                const url = await getUrl({ key: user.avatar, options: { accessLevel: 'protected' }});
-                return { ...user, avatarUrl: url.url.toString() };
+                // Fetch user avatar
+                 let avatarPath = user.avatar;
+                  if (!avatarPath.startsWith('public/')) {
+                    avatarPath = `public/${avatarPath}`;
+                  }
+                  const urlResult = await getUrl({ path: avatarPath });
+                return { ...user, avatarUrl: urlResult.url.toString() };
               } catch (error) {
                 console.error('Error fetching avatar URL for user:', user.username, error);
                 return { ...user, avatarUrl: '/default-avatar.png' };

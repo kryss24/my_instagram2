@@ -5,7 +5,9 @@ import { generateClient } from 'aws-amplify/api';
 import { deletePost, updatePost } from '../../graphql/mutations';
 import LikeButton from '../LikeButton';
 import CommentSection from '../CommentSection';
+import { getUserWithFollows } from '../../graphql/custom-queries';
 import './Post.css';
+import { getUser } from '../../graphql/queries';
 
 const client = generateClient();
 
@@ -17,6 +19,15 @@ function Post({ post, currentUser, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(post.content);
   const videoRef = useRef(null);
+
+  
+
+  //  const response = await client.graphql({
+  //             query: getUser,
+  //             variables: { username: finalUsername }
+  //           });
+
+  console.log('Post user data:', post.owner);
 
   useEffect(() => {
     const fetchMediaUrls = async () => {
@@ -124,7 +135,10 @@ function Post({ post, currentUser, onDelete }) {
     return null;
   };
 
+
   const isOwner = currentUser?.username === post.owner;
+
+  console.log('Rendering post:', post);
 
   return (
     <article className="post">
@@ -138,7 +152,7 @@ function Post({ post, currentUser, onDelete }) {
         </div>
         <div className="post-owner">
           <Link to={`/profile/${post.user?.username || 'unknown'}`}>
-            {post.user?.preferred_username || post.user?.username || 'Unknown User'}
+            {post.userPostsUsername || post.user?.preferred_username || 'Unknown User'}
           </Link>
         </div>
         {isOwner && (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './CreatePost.css';
 import { generateClient } from 'aws-amplify/api';
 import { createPost } from '../../graphql/mutations';
+import { getUser } from '../../graphql/queries';
 import { uploadData } from 'aws-amplify/storage';
 
 const client = generateClient();
@@ -12,6 +13,7 @@ function CreatePost({ user, onPostCreated }) {
   const [mediaPreview, setMediaPreview] = useState(null);
   const [mediaType, setMediaType] = useState(null);
   const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     if (mediaFile) {
@@ -60,12 +62,28 @@ function CreatePost({ user, onPostCreated }) {
         }
       }
 
+      // Récupérer le accountType de l'utilisateur
+      let isPublic = true; // Par défaut public
+      try {
+        const userDataResult = await client.graphql({
+          query: getUser,
+          variables: { username: user.username }
+        });
+        const accountType = userDataResult.data.getUser?.accountType || 'public';
+        isPublic = accountType === 'public';
+      } catch (error) {
+        console.error('Error fetching user accountType:', error);
+        // En cas d'erreur, on garde public par défaut
+      }
+
       const postDetails = {
         content: content.trim(),
         image: imageKey,
         video: videoKey,
         userId: user.username,
+        isPublic: isPublic,
         createdAt: new Date().toISOString(),
+        userPostsUsername: user.preferred_username,
       };
       
       const result = await client.graphql({
