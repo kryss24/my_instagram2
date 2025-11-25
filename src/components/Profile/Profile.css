@@ -20,6 +20,7 @@
 .profile-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .profile-info h2 {
@@ -49,6 +50,15 @@
 .profile-stats span {
   margin-right: 40px;
   font-size: 16px;
+}
+
+.profile-stat-clickable {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.profile-stat-clickable:hover {
+  color: #3897f0;
 }
 
 .profile-edit-buttons {
@@ -96,4 +106,133 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 28px;
+}
+
+/* Section Followers/Following */
+.follow-section {
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.follow-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.follow-section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #8e8e8e;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #262626;
+}
+
+.follow-list {
+  overflow-y: auto;
+  padding: 10px 0;
+}
+
+.follow-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.follow-item:hover {
+  background-color: #fafafa;
+}
+
+.follow-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  margin-right: 15px;
+  overflow: hidden;
+}
+
+.follow-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.follow-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.follow-username {
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+}
+
+.follow-name {
+  font-size: 14px;
+  color: #8e8e8e;
+}
+
+.no-follows {
+  text-align: center;
+  padding: 30px;
+  color: #8e8e8e;
+  font-size: 14px;
+}
+
+/* Scrollbar styling */
+.follow-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.follow-list::-webkit-scrollbar-track {
+  background: #fafafa;
+}
+
+.follow-list::-webkit-scrollbar-thumb {
+  background: #dbdbdb;
+  border-radius: 4px;
+}
+
+.follow-list::-webkit-scrollbar-thumb:hover {
+  background: #c7c7c7;
 }

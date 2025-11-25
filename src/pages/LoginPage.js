@@ -6,47 +6,72 @@ import '@aws-amplify/ui-react/styles.css';
 const LoginPage = () => {
   const navigate = useNavigate();
 
-  return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh'
-    }}>
-      <Authenticator
-        formFields={{
-          signIn: {
-            email: { placeholder: 'Email' },
-            password: { placeholder: 'Password' }
-          },
-          signUp: {
-            email: { order: 1, placeholder: 'Email' },
-            password: { order: 2, placeholder: 'Password' },
-            confirm_password: { order: 3, placeholder: 'Confirm Password' },
-            phone_number: { order: 4, placeholder: 'Phone Number' },
-            birthdate: { order: 5, placeholder: 'Birthdate (YYYY-MM-DD)' },
-            gender: { order: 6, placeholder: 'Gender' }
-          }
-        }}
+  const formFields = {
+    signIn: {
+      username: {
+        label: 'Email',
+        placeholder: 'Enter your email',
+        isRequired: true,
+        order: 1
+      },
+      password: {
+        label: 'Password',
+        placeholder: 'Enter your password',
+        isRequired: true,
+        order: 2
+      }
+    },
+    signUp: {
+      username: {
+        label: 'Email',
+        placeholder: 'Enter your email',
+        isRequired: true,
+        order: 1
+      },
+      password: {
+        label: 'Password',
+        placeholder: 'Enter your password',
+        isRequired: true,
+        order: 2
+      },
+      confirm_password: {
+        label: 'Confirm Password',
+        placeholder: 'Confirm your password',
+        isRequired: true,
+        order: 3
+      },
+      email: {
+        isRequired: false,
+        order: 4,
+        // Masquer complètement le champ email
+        hidden: true
+      }
+    }
+  };
 
-        /* ✅ inclure les attributs requis */
-        signUpAttributes={[
-          'email',
-          'phone_number',
-          'birthdate',
-          'gender',
-          'preferred_username',
-          'name'
-        ]}
-      >
-        {({ user }) => {
-          if (user) {
-            setTimeout(() => navigate('/'), 0);
-          }
-          return null;
-        }}
-      </Authenticator>
-    </div>
+  const services = {
+    async handleSignUp(formData) {
+      let { username, password, attributes } = formData;
+      // Utiliser l'email comme username
+      username = username.toLowerCase();
+      attributes.email = username;
+      return { username, password, attributes };
+    }
+  };
+
+  return (
+    <Authenticator 
+      formFields={formFields}
+      services={services}
+      loginMechanisms={['email']}
+    >
+      {({ user }) => {
+        if (user) {
+          setTimeout(() => navigate('/'), 0);
+        }
+        return null;
+      }}
+    </Authenticator>
   );
 };
 
